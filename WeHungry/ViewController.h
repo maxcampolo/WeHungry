@@ -10,4 +10,7 @@
 
 @interface ViewController : UIViewController
 
+@property (strong,nonatomic) IBOutlet UIImageView *backgroundImage;
+@property (strong,nonatomic) IBOutlet UIButton *mainButton;
+
 @end
