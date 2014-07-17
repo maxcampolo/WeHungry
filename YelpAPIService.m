@@ -14,14 +14,24 @@
 
 @implementation YelpAPIService
 
+#pragma mark Yelp API Helpers
+
 -(void)searchNearByRestaurantsByFilter:(NSString *)categoryFilter atLatitude:(CLLocationDegrees)latitude
                           andLongitude:(CLLocationDegrees)longitude {
-    
-    NSString *urlString = [NSString stringWithFormat:@"%@?term=%@&category_filter=%@&ll=%f,%f",
-                           YELP_SEARCH_URL,
-                           @"restaurants",
-                           categoryFilter,
-                           latitude, longitude];
+    NSString* urlString;
+    if (categoryFilter != nil) {
+        urlString = [NSString stringWithFormat:@"%@?term=%@&category_filter=%@&ll=%f,%f",
+                               YELP_SEARCH_URL,
+                               @"restaurants",
+                               categoryFilter,
+                               latitude, longitude];
+    } else {
+        urlString = [NSString stringWithFormat:@"%@?term=%@&ll=%f,%f",
+                    YELP_SEARCH_URL,
+                    @"restaurants",
+                    latitude, longitude];
+
+    }
     
     NSURL *URL = [NSURL URLWithString:urlString];
     
@@ -48,6 +58,38 @@
         self.urlRespondData = [NSMutableData data];
     }
 }
+
+- (void)searchNearByRestaurantsByFilter:(NSString *)categoryFilter andRadiusFilter:(float)radiusFilter atLatitude:(CLLocationDegrees)latitude andLongitude:(CLLocationDegrees)longitude {
+    
+    NSString *urlString = [NSString stringWithFormat:@"%@?term=%@&category_filter=%@&radius_filter=%f&ll=%f,%f", YELP_SEARCH_URL, @"restaurants",categoryFilter, radiusFilter, latitude,longitude];
+    NSURL *URL = [NSURL URLWithString:urlString];
+    
+    OAConsumer *consumer = [[OAConsumer alloc] initWithKey:OAUTH_CONSUMER_KEY
+                                                    secret:OAUTH_CONSUMER_SECRET];
+    
+    OAToken *token = [[OAToken alloc] initWithKey:OAUTH_TOKEN
+                                           secret:OAUTH_TOKEN_SECRET];
+    
+    id<OASignatureProviding, NSObject> provider = [[OAHMAC_SHA1SignatureProvider alloc] init];
+    NSString *realm = nil;
+    
+    OAMutableURLRequest *request = [[OAMutableURLRequest alloc] initWithURL:URL
+                                                                   consumer:consumer
+                                                                      token:token
+                                                                      realm:realm
+                                                          signatureProvider:provider];
+    
+    [request prepare];
+    
+    NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    
+    if (conn) {
+        self.urlRespondData = [NSMutableData data];
+    }
+    
+}
+
+#pragma mark Connection Delegate
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     [self.urlRespondData setLength:0];
@@ -88,6 +130,7 @@
                 restaurantObj.thumbURL = [restaurantDict objectForKey:@"image_url"];
                 restaurantObj.ratingURL = [restaurantDict objectForKey:@"rating_img_url"];
                 restaurantObj.yelpURL = [restaurantDict objectForKey:@"url"];
+                restaurantObj.mobileURL = [restaurantDict objectForKey:@"mobile_url"];
                 restaurantObj.address = [[[restaurantDict objectForKey:@"location"] objectForKey:@"address"] componentsJoinedByString:@", "];
                 
                 [self.resultArray addObject:restaurantObj];

@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import <CoreImage/CoreImage.h>
 #import "UIImage+ImageEffects.h"
+#import "RestaurantModel.h"
 
 @interface ViewController ()
 
@@ -17,10 +18,16 @@
 @implementation ViewController
 
 NSArray *places;
+bool criteriaUpdated = YES;
 
+#pragma mark IBOutlets
+
+// Action that happens when the main button is pressed
 - (IBAction)getRandomPlace:(id)sender {
     [self pickRandomPlace];
 }
+
+#pragma mark Life Cycle
 
 - (void)viewDidLoad
 {
@@ -30,6 +37,24 @@ NSArray *places;
     [self setBlurredBackground];
     
    places = [NSArray arrayWithObjects:@"Qdoba", @"Primantis", @"Brueggers", nil];
+    
+    // Initialize results array if it isn't already
+    if (!self.placesArray) {
+        self.placesArray = [[NSMutableArray alloc]init];
+    }
+    
+    // Set app delegate and update users current location
+    self.appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    [self.appDelegate updateCurrentLocation];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification
+                                               object:nil];
+    // Add gesture recognizer to scrollview for removing keyboard on tap
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                          action:@selector(doRemoveKeyboard)];
+    [self.backgroundView addGestureRecognizer:tap];
 }
 
 - (void)didReceiveMemoryWarning
@@ -38,6 +63,9 @@ NSArray *places;
     // Dispose of any resources that can be recreated.
 }
 
+#pragma mark UI Methods
+
+// Method to blur the background image
 - (void)setBlurredBackground {
     
     UIImage *image = [self imageWithImage:self.backgroundImage.image scaledToSize:CGSizeMake(640, 1136)];
@@ -59,16 +87,126 @@ NSArray *places;
 }
 
 // Method to get random object from array
-- (NSString*) getRandomFromArray:(NSArray*)array {
-    uint32_t rnd = arc4random_uniform([array count]);
-    NSString *randomObject = [array objectAtIndex:rnd];
-    return randomObject;
+- (RestaurantModel*) getRandomFromArray:(NSArray*)array {
+    if (!array.count == 0) {
+        uint32_t rnd = arc4random_uniform([array count]);
+        RestaurantModel *randomRestaurant = [array objectAtIndex:rnd];
+        return randomRestaurant;
+    }else {
+        NSLog(@"No results");
+        [self.mainButton setTitle:@"No results :(" forState:UIControlStateNormal];
+        return nil;
+    }
+    return nil;
 }
 
+// IBAction for picking a random place --> calls set place method or updates list
 - (void) pickRandomPlace {
-    NSString* place = [self getRandomFromArray:places];
-    [self.mainButton setTitle:place forState:UIControlStateNormal];
+    if (!criteriaUpdated) {
+        [self setPlace];
+    } else if ([self.distanceField hasText]){
+        [self findNearByRestaurantsFromYelpbyCategory:@"Japanese"];
+        criteriaUpdated = NO;
+    } else if ([self.categoryField hasText]){
+        [self findNearByRestaurantsFromYelpbyCategory:self.categoryField.text];
+        criteriaUpdated = NO;
+    } else {
+        [self findNearByRestaurantsFromYelpbyCategory:nil];
+        criteriaUpdated = NO;
+    }
 }
+
+// Picks a random place from the array and sets the UI attributes
+- (void) setPlace {
+    RestaurantModel *place = [self getRandomFromArray:self.placesArray];
+    [self.nameLabel setText:place.name];
+    [self.addressLabel setText:place.address];
+    
+    // Get the thumbnail and rating images on background queue
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        NSData *thumbImageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:place.thumbURL]];
+        NSData *ratingImageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:place.ratingURL]];
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [self.thumbImage setImage:[UIImage imageWithData:thumbImageData]];
+            [self.ratingImage setImage:[UIImage imageWithData:ratingImageData]];
+            // Resize the thumbnail, blur it, and set it to background
+            if ([UIImage imageWithData:thumbImageData]) {
+                UIImage *blurThumb = [self imageWithImage:[UIImage imageWithData:thumbImageData] scaledToSize:CGSizeMake(640, 1136)];
+                blurThumb = [blurThumb applyLightEffect];
+                [self.backgroundImage setImage:blurThumb];
+            }
+        });
+    });
+    //[self.placesArray removeObject:place];   // TO- DO --> THIS IS NOT A STRING, IT'S A RESTAURANTMODEL
+}
+
+#pragma mark Yelp API methods
+- (NSString*) getYelpCategoryFromSearchText {
+    // This is where we will get the category (if there is one) from the filter
+    return nil;
+}
+
+- (void) findNearByRestaurantsFromYelpbyCategory:(NSString *)categoryFilter {
+    // Category filter being null is taken care of in YelpAPIService - in that case just top results are returned
+    if ([CLLocationManager authorizationStatus] != kCLAuthorizationStatusDenied && self.appDelegate.currentUserLocation && self.appDelegate.currentUserLocation.coordinate.latitude) {
+        // Remove objects from array and set UI contents to nil
+        [self.placesArray removeAllObjects];
+        [self.nameLabel setText:nil];
+        [self.thumbImage setImage:nil];
+        [self.ratingImage setImage:nil];
+        [self.addressLabel setText:nil];
+        [self.mainButton setTitle:@"Fetching" forState:UIControlStateNormal];
+        
+        self.yelpService = [[YelpAPIService alloc]init];
+        self.yelpService.delegate = self;
+        
+        self.searchCriteria = categoryFilter;
+        [self.yelpService searchNearByRestaurantsByFilter:[categoryFilter lowercaseString] atLatitude:self.appDelegate.currentUserLocation.coordinate.latitude andLongitude:self.appDelegate.currentUserLocation.coordinate.longitude];
+    } else {
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Location is Disabled" message:@"Enable it in settings and try again." delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+        [av show];
+    }
+}
+
+#pragma mark Yelp API Delegate
+-(void)loadResultWithDataArray:(NSArray *)resultArray {
+    self.placesArray = [resultArray mutableCopy];
+    [self.mainButton setTitle:nil forState:UIControlStateNormal];
+    [self.numberOfResultsLabel setText:[NSString stringWithFormat:@"%@ results",[[NSNumber numberWithLong:self.placesArray.count] stringValue]]];
+    [self setPlace];
+}
+
+#pragma mark Text Field Delegates
+// Set active text field
+- (void)textFieldDidBeginEditing:(UITextField *)textField
+{
+    self.activeTextField = textField;
+}
+
+-(void)textFieldDidEndEditing:(UITextField *)textField {
+    self.activeTextField = nil;
+}
+
+// Responds to UIKeyboardWillHide Notifcation
+- (void) keyboardWillHide:(NSNotification *)notification {
+    [self doRemoveKeyboard];
+}
+
+// Resign first responder when done button is pressed
+- (IBAction)dismissKeyboard:(id)sender
+{
+    [self.activeTextField resignFirstResponder];
+}
+
+- (IBAction)textChanged:(id)sender {
+    criteriaUpdated = YES;
+}
+
+// Resign first responder when backgroundview is tapped
+-(void) doRemoveKeyboard {
+    [self.activeTextField resignFirstResponder];
+}
+
 
 
 @end

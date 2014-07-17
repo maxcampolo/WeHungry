@@ -15,5 +15,6 @@
 @property (nonatomic, strong) NSString *thumbURL;
 @property (nonatomic, strong) NSString *ratingURL;
 @property (nonatomic, strong) NSString *yelpURL;
+@property (nonatomic, strong) NSString *mobileURL;
 
 @end

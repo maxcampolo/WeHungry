@@ -13,6 +13,12 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+    
+    // Initialize location manager
+    self.customLocationManager = [[CLLocationManager alloc] init];
+    self.customLocationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
+    self.customLocationManager.delegate = self;
+    [self.customLocationManager startUpdatingLocation];
     return YES;
 }
 							
@@ -41,6 +47,24 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+# pragma mark - Updates user's current location
+
+-(void)updateCurrentLocation {
+    [self.customLocationManager startUpdatingLocation];
+}
+
+-(void)stopUpdatingCurrentLocation {
+    [self.customLocationManager stopUpdatingHeading];
+}
+
+- (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation {
+    self.currentUserLocation = newLocation;
+    
+    [self.customLocationManager stopUpdatingLocation];
+    self.currentUserLocation = [[CLLocation alloc] initWithLatitude:newLocation.coordinate.latitude
+                                                          longitude:newLocation.coordinate.longitude];
 }
 
 @end

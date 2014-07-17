@@ -7,10 +7,33 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YelpAPIService.h"
+#import "AppDelegate.h"
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController <YelpAPIServiceDelegate, UITextFieldDelegate>
 
+#pragma mark UI Properties
+@property (strong,nonatomic) IBOutlet UIView *backgroundView;
 @property (strong,nonatomic) IBOutlet UIImageView *backgroundImage;
 @property (strong,nonatomic) IBOutlet UIButton *mainButton;
+@property (strong,nonatomic) IBOutlet UILabel *nameLabel;
+@property (strong,nonatomic) IBOutlet UILabel *addressLabel;
+@property (strong,nonatomic) IBOutlet UIImageView *thumbImage;
+@property (strong,nonatomic) IBOutlet UIImageView *ratingImage;
+@property (strong,nonatomic) IBOutlet UITextField *categoryField;
+@property (strong,nonatomic) IBOutlet UITextField *distanceField;
+@property (strong,nonatomic) IBOutlet UILabel *numberOfResultsLabel;
+
+@property (nonatomic,assign) UITextField *activeTextField;
+
+#pragma mark Yelp API Properties
+@property (strong,nonatomic) YelpAPIService *yelpService;
+@property (strong,nonatomic) NSString *searchCriteria;
+
+@property (strong, nonatomic) AppDelegate *appDelegate;
+@property (strong, nonatomic) NSMutableArray *placesArray;
+
+- (NSString*) getYelpCategoryFromSearchText;
+- (void) findNearByRestaurantsFromYelpbyCategory:(NSString *)categoryFilter;
 
 @end

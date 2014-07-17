@@ -23,5 +23,6 @@
 
 -(void)searchNearByRestaurantsByFilter:(NSString *)categoryFilter atLatitude:(CLLocationDegrees)latitude
                           andLongitude:(CLLocationDegrees)longitude;
+- (void)searchNearByRestaurantsByFilter:(NSString *)categoryFilter andRadiusFilter:(float)radiusFilter atLatitude:(CLLocationDegrees)latitude andLongitude:(CLLocationDegrees)longitude;
 
 @end
