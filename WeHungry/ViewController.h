@@ -10,8 +10,9 @@
 #import "YelpAPIService.h"
 #import "AppDelegate.h"
 #import "RestaurantModel.h"
+#import "YelpAPISearchQueries.h"
 
-@interface ViewController : UIViewController <YelpAPIServiceDelegate, UITextFieldDelegate>
+@interface ViewController : UIViewController <YelpAPIServiceDelegate, UITextFieldDelegate, UIPickerViewDelegate>
 
 #pragma mark UI Properties
 @property (strong,nonatomic) IBOutlet UIView *backgroundView;
@@ -30,6 +31,8 @@
 @property (strong,nonatomic) IBOutlet UILabel *numberOfResultsLabel;
 
 @property (nonatomic,assign) UITextField *activeTextField;
+@property (nonatomic,strong) UIPickerView *categoryPicker;
+@property (nonatomic,strong) NSMutableArray *categoryArray;
 
 #pragma mark Yelp API Properties
 @property (strong,nonatomic) YelpAPIService *yelpService;

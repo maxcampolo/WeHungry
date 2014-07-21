@@ -47,14 +47,7 @@ bool criteriaUpdated = YES;
 	// Do any additional setup after loading the view, typically from a nib.
     
     //Set up view
-    [self.mainButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    [self.mainButton.layer setBorderWidth:1.0];
-    [self.viewOnYelpButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    [self.viewOnYelpButton.layer setBorderWidth:1.0];
-    [self.directionsButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    [self.directionsButton.layer setBorderWidth:1.0];
-    [self.callButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    [self.callButton.layer setBorderWidth:1.0];
+    [self setupInterfaceAttributes];
     [self setBlurredBackground];
     
     places = [NSArray arrayWithObjects:@"Qdoba", @"Primantis", @"Brueggers", nil];
@@ -64,6 +57,14 @@ bool criteriaUpdated = YES;
     if (!self.placesArray) {
         self.placesArray = [[NSMutableArray alloc]init];
     }
+    
+    // Set up category picker view
+    [self populateCategoryArray];
+    self.categoryPicker =[[UIPickerView alloc]init];
+    self.categoryPicker.delegate=self;
+    self.categoryPicker.dataSource=self;
+    self.categoryPicker.showsSelectionIndicator=YES;
+    [self.categoryField setInputView:self.categoryPicker];
     
     // Set app delegate and update users current location
     self.appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
@@ -89,6 +90,23 @@ bool criteriaUpdated = YES;
 }
 
 #pragma mark UI Methods
+
+// Method to set up interface with attributes
+- (void) setupInterfaceAttributes {
+    [self.mainButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.mainButton.layer setBorderWidth:1.0];
+    [self.viewOnYelpButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.viewOnYelpButton.layer setBorderWidth:1.0];
+    [self.directionsButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.directionsButton.layer setBorderWidth:1.0];
+    [self.callButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.callButton.layer setBorderWidth:1.0];
+    [self.categoryField.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.categoryField.layer setBorderWidth:1.0];
+    
+    NSAttributedString *str = [[NSAttributedString alloc] initWithString:@"Category" attributes:@{ NSForegroundColorAttributeName : [UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:.5] }];
+    self.categoryField.attributedPlaceholder = str;
+}
 
 // Method to blur the background image
 - (void)setBlurredBackground {
@@ -165,30 +183,67 @@ bool criteriaUpdated = YES;
     //[self.placesArray removeObject:place];   // TO- DO --> THIS IS NOT A STRING, IT'S A RESTAURANTMODEL
 }
 
+// Method for viewing the current place on yelp when the yelp button is pressed
 - (void) viewCurrentPlaceOnYelp {
     if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:self.place.mobileURL]]) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:self.place.mobileURL]];
     }
 }
 
+// method for getting directions to current place in maps app when directions button is pressed
 - (void) getDirectionsToCurrentPlace {
     NSString *addrString = [NSString stringWithFormat:@"http://maps.apple.com/?q=%@", self.place.address];
     NSString* webStringURL = [addrString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *addrURL = [NSURL URLWithString:webStringURL];
-    if([[UIApplication sharedApplication]canOpenURL:addrURL]) {
-        [[UIApplication sharedApplication] openURL:addrURL];
+    if (self.place.address != NULL ) {
+        if([[UIApplication sharedApplication]canOpenURL:addrURL]) {
+            [[UIApplication sharedApplication] openURL:addrURL];
+        }
     }
 }
 
+// Method for calling current place when call button is pressed
 - (void) callCurrentPlace {
     NSString *phoneString = [NSString stringWithFormat:@"tel://%@", self.place.phone];
     NSURL *phoneURL = [NSURL URLWithString:phoneString];
-    if([[UIApplication sharedApplication]canOpenURL:phoneURL]) {
-        [[UIApplication sharedApplication] openURL:phoneURL];
+    if(self.place.phone != NULL) {
+        if([[UIApplication sharedApplication]canOpenURL:phoneURL]) {
+            [[UIApplication sharedApplication] openURL:phoneURL];
+        }
     }
 }
 
+# pragma mark picker delegates
+- (void) populateCategoryArray {
+    self.categoryArray = @[@"American", @"Barbeque", @"Beer Garden", @"Cafe", @"Chicken Wings", @"Chinese", @"Fast Food", @"French", @"Greek", @"Italian", @"Japanese", @"Mexican", @"Pizza", @"Pub Food", @"Salad", @"Sandwiches",@"Steak House", @"Sushi", @"Thai", @"Vegan"];
+}
+
+- (NSInteger)numberOfComponentsInPickerView:
+(UIPickerView *)pickerView
+{
+    return 1;
+}
+
+- (NSInteger)pickerView:(UIPickerView *)pickerView
+numberOfRowsInComponent:(NSInteger)component
+{
+    return self.categoryArray.count;
+}
+
+- (NSString *)pickerView:(UIPickerView *)pickerView
+             titleForRow:(NSInteger)row
+            forComponent:(NSInteger)component
+{
+    return self.categoryArray[row];
+}
+
+- (void) pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    [self.categoryField setText:self.categoryArray[row]];
+    criteriaUpdated = YES;
+}
+
 #pragma mark Yelp API methods
+
 - (NSString*) getYelpCategoryFromSearchText {
     // This is where we will get the category (if there is one) from the filter
     return nil;
@@ -203,13 +258,13 @@ bool criteriaUpdated = YES;
         [self.thumbImage setImage:nil];
         [self.ratingImage setImage:nil];
         [self.addressLabel setText:nil];
-        [self.mainButton setTitle:@"Fetching" forState:UIControlStateNormal];
+        [self.mainButton setTitle:@"Fetching..." forState:UIControlStateNormal];
         
         self.yelpService = [[YelpAPIService alloc]init];
         self.yelpService.delegate = self;
         
-        self.searchCriteria = categoryFilter;
-        [self.yelpService searchNearByRestaurantsByFilter:[categoryFilter lowercaseString] atLatitude:self.appDelegate.currentUserLocation.coordinate.latitude andLongitude:self.appDelegate.currentUserLocation.coordinate.longitude];
+        self.searchCriteria = [YelpAPISearchQueries getQueryFromString:categoryFilter];
+        [self.yelpService searchNearByRestaurantsByFilter:[self.searchCriteria lowercaseString] atLatitude:self.appDelegate.currentUserLocation.coordinate.latitude andLongitude:self.appDelegate.currentUserLocation.coordinate.longitude];
     } else {
         UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Location is Disabled" message:@"Enable it in settings and try again." delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
         [av show];

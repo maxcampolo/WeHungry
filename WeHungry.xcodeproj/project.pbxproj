@@ -45,6 +45,7 @@
 		3002BA15197754BA00635D25 /* YelpAPIService.m in Sources */ = {isa = PBXBuildFile; fileRef = 3002BA14197754BA00635D25 /* YelpAPIService.m */; };
 		3002BA17197755B900635D25 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3002BA16197755B900635D25 /* CoreLocation.framework */; };
 		3002BA1A1977620C00635D25 /* RestaurantModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3002BA191977620C00635D25 /* RestaurantModel.m */; };
+		30F1E40E197DAC1F00317C77 /* YelpAPISearchQueries.m in Sources */ = {isa = PBXBuildFile; fileRef = 30F1E40D197DAC1F00317C77 /* YelpAPISearchQueries.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,6 +146,8 @@
 		3002BA16197755B900635D25 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		3002BA181977620B00635D25 /* RestaurantModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RestaurantModel.h; sourceTree = "<group>"; };
 		3002BA191977620C00635D25 /* RestaurantModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RestaurantModel.m; sourceTree = "<group>"; };
+		30F1E40C197DAC1F00317C77 /* YelpAPISearchQueries.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YelpAPISearchQueries.h; sourceTree = "<group>"; };
+		30F1E40D197DAC1F00317C77 /* YelpAPISearchQueries.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YelpAPISearchQueries.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -215,6 +218,8 @@
 			children = (
 				3002B96C197707B100635D25 /* AppDelegate.h */,
 				3002B96D197707B100635D25 /* AppDelegate.m */,
+				30F1E40C197DAC1F00317C77 /* YelpAPISearchQueries.h */,
+				30F1E40D197DAC1F00317C77 /* YelpAPISearchQueries.m */,
 				3002B96F197707B100635D25 /* Main.storyboard */,
 				3002B972197707B100635D25 /* ViewController.h */,
 				3002B973197707B100635D25 /* ViewController.m */,
@@ -496,6 +501,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3002BA021977512B00635D25 /* sha1.c in Sources */,
+				30F1E40E197DAC1F00317C77 /* YelpAPISearchQueries.m in Sources */,
 				3002BA0C1977512B00635D25 /* OAToken.m in Sources */,
 				3002BA061977512B00635D25 /* OAHMAC_SHA1SignatureProvider.m in Sources */,
 				3002B9FF1977512B00635D25 /* NSURL+Base.m in Sources */,
