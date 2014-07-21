@@ -16,5 +16,6 @@
 @property (nonatomic, strong) NSString *ratingURL;
 @property (nonatomic, strong) NSString *yelpURL;
 @property (nonatomic, strong) NSString *mobileURL;
+@property (nonatomic, strong) NSString *phone;
 
 @end

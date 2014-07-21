@@ -132,6 +132,7 @@
                 restaurantObj.yelpURL = [restaurantDict objectForKey:@"url"];
                 restaurantObj.mobileURL = [restaurantDict objectForKey:@"mobile_url"];
                 restaurantObj.address = [[[restaurantDict objectForKey:@"location"] objectForKey:@"address"] componentsJoinedByString:@", "];
+                restaurantObj.phone = [restaurantDict objectForKey:@"phone"];
                 
                 [self.resultArray addObject:restaurantObj];
             }

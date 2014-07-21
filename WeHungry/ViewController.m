@@ -27,16 +27,38 @@ bool criteriaUpdated = YES;
     [self pickRandomPlace];
 }
 
+- (IBAction)viewCurrentOnYelp:(id)sender {
+    [self viewCurrentPlaceOnYelp];
+}
+
+- (IBAction)getDirectionsButtonTouched:(id)sender {
+    [self getDirectionsToCurrentPlace];
+}
+
+- (IBAction)callButtonTouched:(id)sender {
+    [self callCurrentPlace];
+}
+
 #pragma mark Life Cycle
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-
+    
+    //Set up view
+    [self.mainButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.mainButton.layer setBorderWidth:1.0];
+    [self.viewOnYelpButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.viewOnYelpButton.layer setBorderWidth:1.0];
+    [self.directionsButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.directionsButton.layer setBorderWidth:1.0];
+    [self.callButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.callButton.layer setBorderWidth:1.0];
     [self setBlurredBackground];
     
-   places = [NSArray arrayWithObjects:@"Qdoba", @"Primantis", @"Brueggers", nil];
+    places = [NSArray arrayWithObjects:@"Qdoba", @"Primantis", @"Brueggers", nil];
+    self.place = [[RestaurantModel alloc] init];
     
     // Initialize results array if it isn't already
     if (!self.placesArray) {
@@ -47,6 +69,9 @@ bool criteriaUpdated = YES;
     self.appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
     [self.appDelegate updateCurrentLocation];
     
+    // Set message Delegate
+    self.categoryField.delegate = self;
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillHide:)
                                                  name:UIKeyboardWillHideNotification
@@ -54,7 +79,7 @@ bool criteriaUpdated = YES;
     // Add gesture recognizer to scrollview for removing keyboard on tap
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                           action:@selector(doRemoveKeyboard)];
-    [self.backgroundView addGestureRecognizer:tap];
+    [self.scrollView addGestureRecognizer:tap];
 }
 
 - (void)didReceiveMemoryWarning
@@ -118,14 +143,14 @@ bool criteriaUpdated = YES;
 
 // Picks a random place from the array and sets the UI attributes
 - (void) setPlace {
-    RestaurantModel *place = [self getRandomFromArray:self.placesArray];
-    [self.nameLabel setText:place.name];
-    [self.addressLabel setText:place.address];
+    self.place = [self getRandomFromArray:self.placesArray];
+    [self.nameLabel setText:self.place.name];
+    [self.addressLabel setText:self.place.address];
     
     // Get the thumbnail and rating images on background queue
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        NSData *thumbImageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:place.thumbURL]];
-        NSData *ratingImageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:place.ratingURL]];
+        NSData *thumbImageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:self.place.thumbURL]];
+        NSData *ratingImageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:self.place.ratingURL]];
         dispatch_async(dispatch_get_main_queue(), ^ {
             [self.thumbImage setImage:[UIImage imageWithData:thumbImageData]];
             [self.ratingImage setImage:[UIImage imageWithData:ratingImageData]];
@@ -138,6 +163,29 @@ bool criteriaUpdated = YES;
         });
     });
     //[self.placesArray removeObject:place];   // TO- DO --> THIS IS NOT A STRING, IT'S A RESTAURANTMODEL
+}
+
+- (void) viewCurrentPlaceOnYelp {
+    if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:self.place.mobileURL]]) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:self.place.mobileURL]];
+    }
+}
+
+- (void) getDirectionsToCurrentPlace {
+    NSString *addrString = [NSString stringWithFormat:@"http://maps.apple.com/?q=%@", self.place.address];
+    NSString* webStringURL = [addrString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSURL *addrURL = [NSURL URLWithString:webStringURL];
+    if([[UIApplication sharedApplication]canOpenURL:addrURL]) {
+        [[UIApplication sharedApplication] openURL:addrURL];
+    }
+}
+
+- (void) callCurrentPlace {
+    NSString *phoneString = [NSString stringWithFormat:@"tel://%@", self.place.phone];
+    NSURL *phoneURL = [NSURL URLWithString:phoneString];
+    if([[UIApplication sharedApplication]canOpenURL:phoneURL]) {
+        [[UIApplication sharedApplication] openURL:phoneURL];
+    }
 }
 
 #pragma mark Yelp API methods
@@ -177,6 +225,7 @@ bool criteriaUpdated = YES;
 }
 
 #pragma mark Text Field Delegates
+
 // Set active text field
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {
