@@ -27,12 +27,15 @@
 @property (strong,nonatomic) IBOutlet UIImageView *thumbImage;
 @property (strong,nonatomic) IBOutlet UIImageView *ratingImage;
 @property (strong,nonatomic) IBOutlet UITextField *categoryField;
-@property (strong,nonatomic) IBOutlet UITextField *distanceField;
+@property (strong,nonatomic) IBOutlet UITextField *radiusField;
 @property (strong,nonatomic) IBOutlet UILabel *numberOfResultsLabel;
+@property (strong,nonatomic) IBOutlet UIActivityIndicatorView *fetchingActivityIndicator;
 
 @property (nonatomic,assign) UITextField *activeTextField;
 @property (nonatomic,strong) UIPickerView *categoryPicker;
+@property (nonatomic,strong) UIPickerView *radiusPicker;
 @property (nonatomic,strong) NSMutableArray *categoryArray;
+@property (nonatomic,strong) NSMutableArray *radiusArray;
 
 #pragma mark Yelp API Properties
 @property (strong,nonatomic) YelpAPIService *yelpService;
@@ -43,6 +46,6 @@
 @property (strong, nonatomic) NSMutableArray *placesArray;
 
 - (NSString*) getYelpCategoryFromSearchText;
-- (void) findNearByRestaurantsFromYelpbyCategory:(NSString *)categoryFilter;
+- (void) findNearByRestaurantsFromYelpbyCategory:(NSString *)categoryFilter andRadius:(NSString *)radiusFilter;
 
 @end

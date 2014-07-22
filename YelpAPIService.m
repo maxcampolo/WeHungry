@@ -59,9 +59,9 @@
     }
 }
 
-- (void)searchNearByRestaurantsByFilter:(NSString *)categoryFilter andRadiusFilter:(float)radiusFilter atLatitude:(CLLocationDegrees)latitude andLongitude:(CLLocationDegrees)longitude {
-    
-    NSString *urlString = [NSString stringWithFormat:@"%@?term=%@&category_filter=%@&radius_filter=%f&ll=%f,%f", YELP_SEARCH_URL, @"restaurants",categoryFilter, radiusFilter, latitude,longitude];
+- (void)searchNearByRestaurantsByFilter:(NSString *)categoryFilter andRadiusFilter:(NSString *)radiusFilter atLatitude:(CLLocationDegrees)latitude andLongitude:(CLLocationDegrees)longitude {
+    int radiusInt = [radiusFilter intValue] * 1609;
+    NSString *urlString = [NSString stringWithFormat:@"%@?term=%@&category_filter=%@&radius_filter=%i&ll=%f,%f", YELP_SEARCH_URL, @"restaurants",categoryFilter, radiusInt, latitude,longitude];
     NSURL *URL = [NSURL URLWithString:urlString];
     
     OAConsumer *consumer = [[OAConsumer alloc] initWithKey:OAUTH_CONSUMER_KEY

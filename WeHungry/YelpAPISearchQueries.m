@@ -99,7 +99,11 @@ NSString *result = nil;
                                }
                                };
     
-    ((selectedCase)d[key])();
+    if (key != nil) {
+        ((selectedCase)d[key])();
+    } else {
+        result = @"restaurants";
+    }
     
     if (result != nil) {
         return result;

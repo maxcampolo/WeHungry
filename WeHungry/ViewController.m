@@ -50,7 +50,6 @@ bool criteriaUpdated = YES;
     [self setupInterfaceAttributes];
     [self setBlurredBackground];
     
-    places = [NSArray arrayWithObjects:@"Qdoba", @"Primantis", @"Brueggers", nil];
     self.place = [[RestaurantModel alloc] init];
     
     // Initialize results array if it isn't already
@@ -58,13 +57,9 @@ bool criteriaUpdated = YES;
         self.placesArray = [[NSMutableArray alloc]init];
     }
     
-    // Set up category picker view
+    // Set up category picker view and radius picker view
     [self populateCategoryArray];
-    self.categoryPicker =[[UIPickerView alloc]init];
-    self.categoryPicker.delegate=self;
-    self.categoryPicker.dataSource=self;
-    self.categoryPicker.showsSelectionIndicator=YES;
-    [self.categoryField setInputView:self.categoryPicker];
+    [self setupPickerViews];
     
     // Set app delegate and update users current location
     self.appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
@@ -72,6 +67,7 @@ bool criteriaUpdated = YES;
     
     // Set message Delegate
     self.categoryField.delegate = self;
+    self.radiusField.delegate = self;
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillHide:)
@@ -103,9 +99,33 @@ bool criteriaUpdated = YES;
     [self.callButton.layer setBorderWidth:1.0];
     [self.categoryField.layer setBorderColor:[[UIColor whiteColor] CGColor]];
     [self.categoryField.layer setBorderWidth:1.0];
+    [self.radiusField.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    [self.radiusField.layer setBorderWidth:1.0];
     
-    NSAttributedString *str = [[NSAttributedString alloc] initWithString:@"Category" attributes:@{ NSForegroundColorAttributeName : [UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:.5] }];
+    NSAttributedString *str = [[NSAttributedString alloc] initWithString:@"None" attributes:@{ NSForegroundColorAttributeName : [UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:.5] }];
     self.categoryField.attributedPlaceholder = str;
+    
+    [self.fetchingActivityIndicator setHidden:YES];
+}
+
+// Set up picker views for text fields
+- (void) setupPickerViews {
+    // Setting up the category picker
+    self.categoryPicker =[[UIPickerView alloc]init];
+    [self.categoryPicker setTag:1];
+    self.categoryPicker.delegate=self;
+    self.categoryPicker.dataSource=self;
+    self.categoryPicker.showsSelectionIndicator=YES;
+    [self.categoryField setInputView:self.categoryPicker];
+    
+    //Setting up the range picker
+    self.radiusPicker = [[UIPickerView alloc]init];
+    [self.radiusPicker setTag:0];
+    self.radiusPicker.delegate=self;
+    self.radiusPicker.dataSource = self;
+    self.radiusPicker.showsSelectionIndicator = YES;
+    [self.radiusField setInputView:self.radiusPicker];
+    [self.radiusPicker selectRow:4 inComponent:0 animated:NO];
 }
 
 // Method to blur the background image
@@ -147,14 +167,12 @@ bool criteriaUpdated = YES;
 - (void) pickRandomPlace {
     if (!criteriaUpdated) {
         [self setPlace];
-    } else if ([self.distanceField hasText]){
-        [self findNearByRestaurantsFromYelpbyCategory:@"Japanese"];
         criteriaUpdated = NO;
     } else if ([self.categoryField hasText]){
-        [self findNearByRestaurantsFromYelpbyCategory:self.categoryField.text];
+        [self findNearByRestaurantsFromYelpbyCategory:self.categoryField.text andRadius:self.radiusField.text];
         criteriaUpdated = NO;
     } else {
-        [self findNearByRestaurantsFromYelpbyCategory:nil];
+        [self findNearByRestaurantsFromYelpbyCategory:nil andRadius:self.radiusField.text];
         criteriaUpdated = NO;
     }
 }
@@ -216,29 +234,55 @@ bool criteriaUpdated = YES;
 # pragma mark picker delegates
 - (void) populateCategoryArray {
     self.categoryArray = @[@"American", @"Barbeque", @"Beer Garden", @"Cafe", @"Chicken Wings", @"Chinese", @"Fast Food", @"French", @"Greek", @"Italian", @"Japanese", @"Mexican", @"Pizza", @"Pub Food", @"Salad", @"Sandwiches",@"Steak House", @"Sushi", @"Thai", @"Vegan"];
+    
+    if (!self.radiusArray) {
+        self.radiusArray = [[NSMutableArray alloc]init];
+    }
+    for (int i = 0; i < 25; i++) {
+        [self.radiusArray addObject:[NSString stringWithFormat:@"%i", i+1]];
+    }
 }
 
 - (NSInteger)numberOfComponentsInPickerView:
 (UIPickerView *)pickerView
 {
-    return 1;
+    // Radius picker view tag is 0
+    if (pickerView.tag == 0) {
+        return 1;
+    }
+    else return 1;
 }
 
 - (NSInteger)pickerView:(UIPickerView *)pickerView
 numberOfRowsInComponent:(NSInteger)component
 {
-    return self.categoryArray.count;
+    // Radius picker view tag is 0
+    if (pickerView.tag == 0) {
+        return self.radiusArray.count;
+    } else {
+        return self.categoryArray.count;
+    }
 }
 
 - (NSString *)pickerView:(UIPickerView *)pickerView
              titleForRow:(NSInteger)row
             forComponent:(NSInteger)component
 {
-    return self.categoryArray[row];
+    // Radius picker view tag is 0
+    if (pickerView.tag == 0) {
+        return self.radiusArray[row];
+    } else {
+        return self.categoryArray[row];
+    }
 }
 
 - (void) pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
-    [self.categoryField setText:self.categoryArray[row]];
+    // Radius picker view tag is 0
+    if (pickerView.tag == 0) {
+        [self.radiusField setText:self.radiusArray[row]];
+    } else {
+        [self.categoryField setText:self.categoryArray[row]];
+    }
     criteriaUpdated = YES;
 }
 
@@ -249,7 +293,7 @@ numberOfRowsInComponent:(NSInteger)component
     return nil;
 }
 
-- (void) findNearByRestaurantsFromYelpbyCategory:(NSString *)categoryFilter {
+- (void) findNearByRestaurantsFromYelpbyCategory:(NSString *)categoryFilter andRadius:(NSString *)radiusFilter{
     // Category filter being null is taken care of in YelpAPIService - in that case just top results are returned
     if ([CLLocationManager authorizationStatus] != kCLAuthorizationStatusDenied && self.appDelegate.currentUserLocation && self.appDelegate.currentUserLocation.coordinate.latitude) {
         // Remove objects from array and set UI contents to nil
@@ -260,11 +304,15 @@ numberOfRowsInComponent:(NSInteger)component
         [self.addressLabel setText:nil];
         [self.mainButton setTitle:@"Fetching..." forState:UIControlStateNormal];
         
+        // Start activity indicator
+        [self.fetchingActivityIndicator startAnimating];
+        [self.fetchingActivityIndicator setHidden:NO];
+        
         self.yelpService = [[YelpAPIService alloc]init];
         self.yelpService.delegate = self;
         
         self.searchCriteria = [YelpAPISearchQueries getQueryFromString:categoryFilter];
-        [self.yelpService searchNearByRestaurantsByFilter:[self.searchCriteria lowercaseString] atLatitude:self.appDelegate.currentUserLocation.coordinate.latitude andLongitude:self.appDelegate.currentUserLocation.coordinate.longitude];
+        [self.yelpService searchNearByRestaurantsByFilter:[self.searchCriteria lowercaseString] andRadiusFilter:radiusFilter atLatitude:self.appDelegate.currentUserLocation.coordinate.latitude andLongitude:self.appDelegate.currentUserLocation.coordinate.longitude];
     } else {
         UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Location is Disabled" message:@"Enable it in settings and try again." delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
         [av show];
@@ -275,6 +323,8 @@ numberOfRowsInComponent:(NSInteger)component
 -(void)loadResultWithDataArray:(NSArray *)resultArray {
     self.placesArray = [resultArray mutableCopy];
     [self.mainButton setTitle:nil forState:UIControlStateNormal];
+    [self.fetchingActivityIndicator stopAnimating];
+    [self.fetchingActivityIndicator setHidden:YES];
     [self.numberOfResultsLabel setText:[NSString stringWithFormat:@"%@ results",[[NSNumber numberWithLong:self.placesArray.count] stringValue]]];
     [self setPlace];
 }
