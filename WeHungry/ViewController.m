@@ -10,6 +10,7 @@
 #import <CoreImage/CoreImage.h>
 #import "UIImage+ImageEffects.h"
 #import "RestaurantModel.h"
+#import "iAd/ADBannerView.h"
 
 @interface ViewController ()
 
@@ -69,6 +70,11 @@ bool criteriaUpdated = YES;
     self.categoryField.delegate = self;
     self.radiusField.delegate = self;
     
+    // Set iAD banner view delegate and set it to hidden initially
+    self.adBanner.delegate = self;
+    [self.adBanner setHidden:YES];
+    
+    // Set notification observer for keyboardWillHide
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillHide:)
                                                  name:UIKeyboardWillHideNotification
@@ -77,6 +83,13 @@ bool criteriaUpdated = YES;
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                           action:@selector(doRemoveKeyboard)];
     [self.scrollView addGestureRecognizer:tap];
+    
+    // Move button view up if it is not an iphone 5
+    if (IS_IPHONE_5) {
+    } else {
+        [self.buttonView setFrame:CGRectMake(self.buttonView.frame.origin.x, self.buttonView.frame.origin.y - 40, self.buttonView.frame.size.width, self.buttonView.frame.size.height)];
+        [self.mainView setFrame:CGRectMake(self.mainView.frame.origin.x, self.mainView.frame.origin.y - 10, self.mainView.frame.size.width, self.mainView.frame.size.height)];
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -102,7 +115,7 @@ bool criteriaUpdated = YES;
     [self.radiusField.layer setBorderColor:[[UIColor whiteColor] CGColor]];
     [self.radiusField.layer setBorderWidth:1.0];
     
-    NSAttributedString *str = [[NSAttributedString alloc] initWithString:@"None" attributes:@{ NSForegroundColorAttributeName : [UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:.5] }];
+    NSAttributedString *str = [[NSAttributedString alloc] initWithString:@"All" attributes:@{ NSForegroundColorAttributeName : [UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:.5] }];
     self.categoryField.attributedPlaceholder = str;
     
     [self.fetchingActivityIndicator setHidden:YES];
@@ -359,6 +372,29 @@ numberOfRowsInComponent:(NSInteger)component
 // Resign first responder when backgroundview is tapped
 -(void) doRemoveKeyboard {
     [self.activeTextField resignFirstResponder];
+}
+
+#pragma mark iAd banner view delegates
+- (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error{
+    if (self.adBanner.hidden == NO) {
+        [self.adBanner setHidden:YES];
+    }
+    NSLog(@"bannerview did not receive any banner due to %@", error);
+}
+
+- (void)bannerViewActionDidFinish:(ADBannerView *)banner{
+    NSLog(@"bannerview was selected");
+}
+
+- (BOOL)bannerViewActionShouldBegin:(ADBannerView *)banner willLeaveApplication:(BOOL)willLeave{
+    return YES;
+}
+
+- (void)bannerViewDidLoadAd:(ADBannerView *)banner {
+    if (self.adBanner.hidden == YES) {
+        [self.adBanner setHidden:NO];
+    }
+    NSLog(@"banner was loaded");
 }
 
 

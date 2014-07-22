@@ -46,6 +46,7 @@
 		3002BA17197755B900635D25 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3002BA16197755B900635D25 /* CoreLocation.framework */; };
 		3002BA1A1977620C00635D25 /* RestaurantModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3002BA191977620C00635D25 /* RestaurantModel.m */; };
 		30F1E40E197DAC1F00317C77 /* YelpAPISearchQueries.m in Sources */ = {isa = PBXBuildFile; fileRef = 30F1E40D197DAC1F00317C77 /* YelpAPISearchQueries.m */; };
+		30F1E411197EDAA100317C77 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30F1E410197EDAA100317C77 /* iAd.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -148,6 +149,7 @@
 		3002BA191977620C00635D25 /* RestaurantModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RestaurantModel.m; sourceTree = "<group>"; };
 		30F1E40C197DAC1F00317C77 /* YelpAPISearchQueries.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YelpAPISearchQueries.h; sourceTree = "<group>"; };
 		30F1E40D197DAC1F00317C77 /* YelpAPISearchQueries.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YelpAPISearchQueries.m; sourceTree = "<group>"; };
+		30F1E410197EDAA100317C77 /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +157,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30F1E411197EDAA100317C77 /* iAd.framework in Frameworks */,
 				3002BA17197755B900635D25 /* CoreLocation.framework in Frameworks */,
 				3002B998197716B700635D25 /* QuartzCore.framework in Frameworks */,
 				3002B996197716A800635D25 /* CoreImage.framework in Frameworks */,
@@ -201,6 +204,7 @@
 		3002B95C197707B100635D25 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				30F1E410197EDAA100317C77 /* iAd.framework */,
 				3002BA16197755B900635D25 /* CoreLocation.framework */,
 				3002B9991977288900635D25 /* UIImageEffects */,
 				3002B997197716B700635D25 /* QuartzCore.framework */,
@@ -667,6 +671,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "WeHungry/WeHungry-Prefix.pch";
 				INFOPLIST_FILE = "WeHungry/WeHungry-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -680,6 +685,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "WeHungry/WeHungry-Prefix.pch";
 				INFOPLIST_FILE = "WeHungry/WeHungry-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

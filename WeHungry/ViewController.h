@@ -11,11 +11,16 @@
 #import "AppDelegate.h"
 #import "RestaurantModel.h"
 #import "YelpAPISearchQueries.h"
+#import "iAd/ADBannerView.h"
 
-@interface ViewController : UIViewController <YelpAPIServiceDelegate, UITextFieldDelegate, UIPickerViewDelegate>
+#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
+
+@interface ViewController : UIViewController <YelpAPIServiceDelegate, UITextFieldDelegate, UIPickerViewDelegate, ADBannerViewDelegate>
 
 #pragma mark UI Properties
 @property (strong,nonatomic) IBOutlet UIView *backgroundView;
+@property (strong,nonatomic) IBOutlet UIView *buttonView;
+@property (strong,nonatomic) IBOutlet UIView *mainView;
 @property (strong,nonatomic) IBOutlet UIScrollView *scrollView;
 @property (strong,nonatomic) IBOutlet UIImageView *backgroundImage;
 @property (strong,nonatomic) IBOutlet UIButton *mainButton;
@@ -30,6 +35,7 @@
 @property (strong,nonatomic) IBOutlet UITextField *radiusField;
 @property (strong,nonatomic) IBOutlet UILabel *numberOfResultsLabel;
 @property (strong,nonatomic) IBOutlet UIActivityIndicatorView *fetchingActivityIndicator;
+@property (strong,nonatomic) IBOutlet ADBannerView *adBanner;
 
 @property (nonatomic,assign) UITextField *activeTextField;
 @property (nonatomic,strong) UIPickerView *categoryPicker;
