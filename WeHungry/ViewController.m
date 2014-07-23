@@ -87,8 +87,8 @@ bool criteriaUpdated = YES;
     // Move button view up if it is not an iphone 5
     if (IS_IPHONE_5) {
     } else {
-        [self.buttonView setFrame:CGRectMake(self.buttonView.frame.origin.x, self.buttonView.frame.origin.y - 40, self.buttonView.frame.size.width, self.buttonView.frame.size.height)];
-        [self.mainView setFrame:CGRectMake(self.mainView.frame.origin.x, self.mainView.frame.origin.y - 10, self.mainView.frame.size.width, self.mainView.frame.size.height)];
+        [self.buttonView setFrame:CGRectMake(self.buttonView.frame.origin.x, self.buttonView.frame.origin.y - 60, self.buttonView.frame.size.width, self.buttonView.frame.size.height)];
+        [self.mainView setFrame:CGRectMake(self.mainView.frame.origin.x, self.mainView.frame.origin.y - 25, self.mainView.frame.size.width, self.mainView.frame.size.height)];
     }
 }
 
@@ -315,7 +315,7 @@ numberOfRowsInComponent:(NSInteger)component
         [self.thumbImage setImage:nil];
         [self.ratingImage setImage:nil];
         [self.addressLabel setText:nil];
-        [self.mainButton setTitle:@"Fetching..." forState:UIControlStateNormal];
+        [self.mainButton setTitle:@"Searching..." forState:UIControlStateNormal];
         
         // Start activity indicator
         [self.fetchingActivityIndicator startAnimating];
